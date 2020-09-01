@@ -1,2 +1,2 @@
-# software_renderer
+# Software_renderer
 Proyecto 1 Graficas por computador
