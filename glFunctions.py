@@ -6,6 +6,11 @@
 from structFunctions import *
 from Object import *
 from mathFunctions import *
+import numpy
+
+#Referencias para ciertas funciones
+#Estas fueron adaptadas para este proyecto
+#https://github.com/ThomIves/BasicLinearAlgebraToolsPurePy/blob/master/LinearAlgebraPurePython.py
 
 
 class Render(object):
@@ -21,6 +26,11 @@ class Render(object):
       self.y_position = 0
       self.ViewPort_height = 0
       self.ViewPort_width = 0
+      self.light = V3(0, 0, 1)
+      self.active_texture = None
+      self.active_texture2 = None
+      self.createViewMatrix()
+      self.createProjectionMatrix()
       self.glClear()
 
 # Write a BMP file ---------------------------------
@@ -73,10 +83,7 @@ class Render(object):
       self.width = width
       self.height = height
 
-    # Creates a window
-    def glCreateWindow(self, width, height):
-      self.width = width
-      self.height = height
+
 
     # Defines the area where will be able to draw
     def glViewPort(self, x_position, y_position, ViewPort_width, ViewPort_height):
@@ -84,6 +91,38 @@ class Render(object):
       self.y_position = y_position
       self.ViewPort_height = ViewPort_height
       self.ViewPort_width = ViewPort_width
+      self.viewportMatrix = numpy.matrix([[ViewPort_width / 2, 0, 0, x_position + ViewPort_width / 2],
+                                    [0, ViewPort_height / 2, 0, y_position + ViewPort_height / 2],
+                                    [0, 0, 0.5, 0.5],
+                                    [0, 0, 0, 1]])
+
+
+    def glVertex_coord(self, x, y, color = None):
+      if x < self.x_position or x >= self.x_position + self.ViewPort_width or y < self.y_position or y >= self.y_position + self.ViewPort_height:
+        return
+
+      if x >= self.width or x < 0 or y >= self.height or y < 0:
+        return
+
+      try:
+        self.framebuffer[y][x] = color or self.curr_color
+      except:
+        pass
+
+
+
+    def inverseMatrix(self):
+      pass
+
+
+    def createViewMatrix(self, camPosition = V3(0,0,0), camRotation = V3(0,0,0)):
+        camMatrix = self.createObjectMatrix( translate = camPosition, rotate = camRotation)
+        #self.viewMatrix=self.inverseMatrix(camMatrix)
+
+
+
+
+
 
     # Compuse el vertex por que me daba error el range
     def glVertex(self, x, y):
@@ -127,112 +166,204 @@ class Render(object):
 
       #Functions for creating triangules utilizando glpoint()
 
+    def triangle_bc(self, A, B, C, texcoords=(), normals=(), _color=None):
+      # bounding box
+      minX = round(min(A.x, B.x, C.x))
+      minY = round(min(A.y, B.y, C.y))
+      maxX = round(max(A.x, B.x, C.x))
+      maxY = round(max(A.y, B.y, C.y))
+
+      for x in range(minX, maxX + 1):
+        for y in range(minY, maxY + 1):
+          if x >= self.width or x < 0 or y >= self.height or y < 0:
+            continue
+
+          u, v, w = barycentric(A, B, C, V2(x, y))
+
+          if u >= 0 and v >= 0 and w >= 0:
+
+            z = A.z * u + B.z * v + C.z * w
+            if z < self.zbuffer[y][x] and z <= 1 and z >= -1:
+
+              if self.active_shader:
+
+                r, g, b = self.active_shader(self, verts=(A, B, C), baryCoords=(u, v, w), texCoords=texcoords, normals=normals,color=_color or self.change_color)
+              else:
+                b, g, r = _color or self.change_color
+
+              self.glVertex_coord(x, y, color(r, g, b))
+              self.zbuffer[y][x] = z
+
+    def loadModel(self, filename, translate = V3(0,0,0), scale = V3(1,1,1), rotate=V3(0,0,0)):
+        model = Obj(filename)
+
+        modelMatrix = self.createObjectMatrix(translate, scale, rotate)
+
+        rotationMatrix = self.createRotationMatrix(rotate)
+
+        for face in model.faces:
+
+            vertCount = len(face)
+
+            v0 = model.vertices[ face[0][0] - 1 ]
+            v1 = model.vertices[ face[1][0] - 1 ]
+            v2 = model.vertices[ face[2][0] - 1 ]
+            if vertCount > 3:
+                v3 = model.vertices[ face[3][0] - 1 ]
+
+            v0 = self.transform(v0, modelMatrix)
+            v1 = self.transform(v1, modelMatrix)
+            v2 = self.transform(v2, modelMatrix)
+            if vertCount > 3:
+                v3 = self.transform(v3, modelMatrix)
+
+            if self.active_texture:
+                vt0 = model.texcoords[face[0][1] - 1]
+                vt1 = model.texcoords[face[1][1] - 1]
+                vt2 = model.texcoords[face[2][1] - 1]
+                vt0 = V2(vt0[0], vt0[1])
+                vt1 = V2(vt1[0], vt1[1])
+                vt2 = V2(vt2[0], vt2[1])
+                if vertCount > 3:
+                    vt3 = model.texcoords[face[3][1] - 1]
+                    vt3 = V2(vt3[0], vt3[1])
+            else:
+                vt0 = V2(0,0)
+                vt1 = V2(0,0)
+                vt2 = V2(0,0)
+                vt3 = V2(0,0)
+
+            vn0 = model.normals[face[0][2] - 1]
+            vn1 = model.normals[face[1][2] - 1]
+            vn2 = model.normals[face[2][2] - 1]
+
+            vn0 = self.dirTransform(vn0, rotationMatrix)
+            vn1 = self.dirTransform(vn1, rotationMatrix)
+            vn2 = self.dirTransform(vn2, rotationMatrix)
+            if vertCount > 3:
+                vn3 = model.normals[face[3][2] - 1]
+                vn3 = self.dirTransform(vn3, rotationMatrix)
+
+
+            self.triangle_bc(v0,v1,v2, texcoords = (vt0,vt1,vt2), normals = (vn0,vn1,vn2))
+            if vertCount > 3:
+                self.triangle_bc(v0,v2,v3, texcoords = (vt0,vt2,vt3), normals = (vn0,vn2,vn3))
+
+    def createProjectionMatrix(self, n = 0.1, f = 1000, fov = 60):
+      t = numpy.tan((fov * math.pi / 180) / 2) * n
+      r = t * self.ViewPort_width / self.ViewPort_height
+
+      self.projectionMatrix =numpy.matrix([[n / r, 0, 0, 0],
+                                           [0, n / t, 0, 0],
+                                           [0, 0, -(f+n)/(f-n), -(2*f*n)/(f-n)],
+                                           [0, 0, -1, 0]])
+
 
     def triangle(self, A, B, C):
-        xmax, ymax, xmin, ymin = bbox(A, B, C)
+      xmax, ymax, xmin, ymin = bbox(A, B, C)
 
-        for x in range(xmin, xmax + 1):
-          for y in range(ymin, ymax + 1):
-            P = V2(x, y)
-            w, v, u = barycentric(A, B, C, P)
-            if w < 0 or v < 0 or u < 0:
-              continue
-            z = A.z * w + B.z * u + C.z * v
-            try:
-              if z > self.zbuffer[x][y]:
-                self.glpoint(x, y)
-                self.zbuffer[x][y] = z
-            except:
-              pass
-
-      # New function for loading my .obj
-    def load_model(self, filename, translate=(0, 0, 0), scale=(1, 1, 1)):
-      model = Obj(filename)
-
-      light = V3(0, 0, 1)
-
-      for face in model.faces:
-        vcount = len(face)
-
-        if vcount == 3:
-          f1 = face[0][0] - 1
-          f2 = face[1][0] - 1
-          f3 = face[2][0] - 1
-
-          v1 = V3(model.vertex[f1][0], model.vertex[f1][1], model.vertex[f1][2])
-          v2 = V3(model.vertex[f2][0], model.vertex[f2][1], model.vertex[f2][2])
-          v3 = V3(model.vertex[f3][0], model.vertex[f3][1], model.vertex[f3][2])
-
-          x1 = round((v1.x * scale[0]) + translate[0])
-          y1 = round((v1.y * scale[1]) + translate[1])
-          z1 = round((v1.z * scale[2]) + translate[2])
-
-          x2 = round((v2.x * scale[0]) + translate[0])
-          y2 = round((v2.y * scale[1]) + translate[1])
-          z2 = round((v2.z * scale[2]) + translate[2])
-
-          x3 = round((v3.x * scale[0]) + translate[0])
-          y3 = round((v3.y * scale[1]) + translate[1])
-          z3 = round((v3.z * scale[2]) + translate[2])
-
-          A = V3(x1, y1, z1)
-          B = V3(x2, y2, z2)
-          C = V3(x3, y3, z3)
-
-          normal = norm(cross(sub(B, A), sub(C, A)))
-          intensity = dot(normal, light)
-          grey = round(255 * intensity)
-
-          if grey < 0:
+      for x in range(xmin, xmax + 1):
+        for y in range(ymin, ymax + 1):
+          P = V2(x, y)
+          w, v, u = barycentric(A, B, C, P)
+          if w < 0 or v < 0 or u < 0:
             continue
+          z = A.z * w + B.z * u + C.z * v
+          try:
+            if z > self.zbuffer[x][y]:
+              self.glpoint(x, y)
+              self.zbuffer[x][y] = z
+          except:
+            pass
 
-          self.change_color = color2(grey, grey, grey)
 
-          self.triangle(A, B, C)
+    def createRotationMatrix(self, rotate=V3(0,0,0)):
+      pitch = numpy.deg2rad(rotate.x)
+      yaw = numpy.deg2rad(rotate.y)
+      roll = numpy.deg2rad(rotate.z)
 
-        else:
-          f1 = face[0][0] - 1
-          f2 = face[1][0] - 1
-          f3 = face[2][0] - 1
-          f4 = face[3][0] - 1
+      rotationX = numpy.matrix([[1, 0, 0, 0],
+                                [0, numpy.cos(pitch), -numpy.sin(pitch), 0],
+                                [0, numpy.sin(pitch), numpy.cos(pitch), 0],
+                                [0, 0, 0, 1]])
 
-          v1 = V3(model.vertex[f1][0], model.vertex[f1][1], model.vertex[f1][2])
-          v2 = V3(model.vertex[f2][0], model.vertex[f2][1], model.vertex[f2][2])
-          v3 = V3(model.vertex[f3][0], model.vertex[f3][1], model.vertex[f3][2])
-          v4 = V3(model.vertex[f4][0], model.vertex[f4][1], model.vertex[f4][2])
+      rotationY = numpy.matrix([[numpy.cos(yaw), 0, numpy.sin(yaw), 0],
+                            [0, 1, 0, 0],
+                            [-numpy.sin(yaw), 0, numpy.cos(yaw), 0],
+                            [0, 0, 0, 1]])
 
-          x1 = round((v1.x * scale[0]) + translate[0])
-          y1 = round((v1.y * scale[1]) + translate[1])
-          z1 = round((v1.z * scale[2]) + translate[2])
+      rotationZ = numpy.matrix([[numpy.cos(roll),-numpy.sin(roll), 0, 0],
+                            [numpy.sin(roll), numpy.cos(roll), 0, 0],
+                            [0, 0, 1, 0],
+                            [0, 0, 0, 1]])
 
-          x2 = round((v2.x * scale[0]) + translate[0])
-          y2 = round((v2.y * scale[1]) + translate[1])
-          z2 = round((v2.z * scale[2]) + translate[2])
+      return rotationX * rotationY * rotationZ
 
-          x3 = round((v3.x * scale[0]) + translate[0])
-          y3 = round((v3.y * scale[1]) + translate[1])
-          z3 = round((v3.z * scale[2]) + translate[2])
 
-          x4 = round((v4.x * scale[0]) + translate[0])
-          y4 = round((v4.y * scale[1]) + translate[1])
-          z4 = round((v4.z * scale[2]) + translate[2])
 
-          A = V3(x1, y1, z1)
-          B = V3(x2, y2, z2)
-          C = V3(x3, y3, z3)
-          D = V3(x4, y4, z4)
+    def createObjectMatrix(self, translate = V3(0,0,0), scale = V3(1,1,1), rotate=V3(0,0,0)):
+      translateMatrix = numpy.matrix([[1, 0, 0, translate.x],
+                                  [0, 1, 0, translate.y],
+                                  [0, 0, 1, translate.z],
+                                  [0, 0, 0, 1]])
 
-          normal = norm(cross(sub(B, A), sub(C, A)))
-          intensity = dot(normal, light)
-          grey = round(255 * intensity)
-          if grey < 0:
-            continue
+      scaleMatrix = numpy.matrix([[scale.x, 0, 0, 0],
+                              [0, scale.y, 0, 0],
+                              [0, 0, scale.z, 0],
+                              [0, 0, 0, 1]])
 
-          self.change_color = color2(grey, grey, grey)
+      rotationMatrix = self.createRotationMatrix(rotate)
 
-          self.triangle(A, B, C)
+      return translateMatrix * rotationMatrix * scaleMatrix
 
-          self.triangle(A, D, C)
+    def transform(self, vertex, vMatrix):
+      augVertex = V4(vertex[0], vertex[1], vertex[2], 1)
+      transVertex = self.viewportMatrix @ self.projectionMatrix @ self.viewMatrix @ vMatrix @ augVertex
+      transVertex = transVertex.tolist()[0]
+      transVertex = V3(transVertex[0] / transVertex[3],
+                       transVertex[1] / transVertex[3],
+                       transVertex[2] / transVertex[3])
+      return transVertex
+
+
+
+    def dirTransform(self, vertex, vMatrix):
+      augVertex = V4(vertex[0], vertex[1], vertex[2], 0)
+      transVertex = vMatrix @ augVertex
+      transVertex = transVertex.tolist()[0]
+      transVertex = V3(transVertex[0],
+                       transVertex[1],
+                       transVertex[2])
+
+      return transVertex
+
+    def zeros_matrix(rows, cols):
+        """
+        Creates a matrix filled with zeros.
+            :param rows: the number of rows the matrix should have
+            :param cols: the number of columns the matrix should have
+            :return: list of lists that form the matrix
+        """
+        M = []
+        while len(M) < rows:
+            M.append([])
+            while len(M[-1]) < cols:
+                M[-1].append(0.0)
+
+        return M
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

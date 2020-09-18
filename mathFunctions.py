@@ -9,6 +9,7 @@ import math
 
 V2 = namedtuple('Vertex2', ['x', 'y'])
 V3 = namedtuple('Vertex3', ['x', 'y', 'z'])
+V4 = namedtuple('Point4', ['x', 'y', 'z','w'])
 
 def sum(v0, v1):
   return V3(v0.x + v1.x, v0.y + v1.y, v0.z + v1.z)
@@ -31,6 +32,7 @@ def cross(v1, v2):
 
 def length(v0):
   return (v0.x**2 + v0.y**2 + v0.z**2)**0.5
+
 
 def norm(v0):
   v0length = length(v0)
