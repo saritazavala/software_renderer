@@ -16,7 +16,7 @@ r.glClear()
 r.activeT = Texture('./models/model.bmp')
 
 posModel = V3( 0, 0, -5)
-r.actSha = toon
+r.actSha = gourad
 
 light = V3(0.5,0,1)
 
