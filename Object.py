@@ -6,25 +6,38 @@
 import struct
 from structFunctions import *
 
+def try_int(s, base=10, val=None):
+    try:
+        return int(s, base)
+    except ValueError:
+        return val
+
 class Obj(object):
     def __init__(self, filename):
-        with open(filename) as f:
-            self.lines = f.read().splitlines()
-        self.vertex = []
-        self.tvertices = []
-        self.faces = []
+        with open(filename, 'r') as file:
+            self.lines=file.read().splitlines()
+        #clasificaciones de datos dentro de archivo OBJ
+        self.vertices=[]
+        self.normals=[]
+        self.tvertex=[]
+        self.faces=[]
         self.read()
 
     def read(self):
         for line in self.lines:
             if line:
-                prefix, value = line.split(' ', 1)
-                if prefix == 'v':
-                    self.vertex.append(list(map(float, value.split(' '))))
-                elif prefix == 'vt':
-                    self.tvertices.append(list(map(float, value.strip().split(' '))))
-                elif prefix == 'f':
-                    self.faces.append([list(map(int , face.split('/'))) for face in value.split(' ')])
+                try:
+                    prefix, value = line.split(' ', 1)
+                except:
+                    continue
+                if prefix == 'v': # vertices
+                    self.vertices.append(list(map(float,value.split(' '))))
+                elif prefix == 'vn': #normales
+                    self.normals.append(list(map(float,value.split(' '))))
+                elif prefix == 'vt': #textcoords
+                    self.tvertex.append(list(map(float,value.split(' '))))
+                elif prefix == 'f': #faces XX/YY/ZZ
+                    self.faces.append([list(map(int,vert.split('/'))) for vert in value.split(' ')])
 
 
 class Texture(object):

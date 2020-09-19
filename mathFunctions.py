@@ -64,3 +64,37 @@ def barycentric(A, B, C, P):
   w = 1 - (cx + cy)/cz
 
   return w, v, u
+
+# -------------------------------------------------------------------------
+# def multiplicacion(matriz1, matriz2, c1, f1, c2, f2):  # función para multiplicar matrices
+#   matriz3 = []
+#   for i in range(f1):
+#     matriz3.append([0] * c2)
+#
+#   for i in range(f1):
+#     for j in range(c2):
+#       for k in range(f2):
+#         numf = matriz1[i][k] * matriz2[k][j]
+#         matriz3[i][j] += numf
+#
+# def division(self, norm, frobenius):
+#   if (frobenius==0):
+#     res=[]
+#     res.append(float('NaN'))
+#     res.append(float('NaN'))
+#     res.append(float('NaN'))
+#     return res
+#
+#   else:
+#     res=[]
+#     res.append(norm[0]/ frobenius)
+#     res.append(norm[1]/ frobenius)
+#     res.append(norm[2]/ frobenius)
+#     return res
+#
+# def frobenius(self, norm):
+#     return ((norm[0] ** 2 + norm[1] ** 2 + norm[2] ** 2) ** (1 / 2))
+
+
+
+
