@@ -6,17 +6,28 @@
 from glFunctions import *
 from shaders import *
 
-r = Render('help.bmp')
-r.glCreateWindow(800,600)
+from Object import *
+from glFunctions import *
+from shaders import *
+from mathFunctions import *
+
+r = Render(800,600, 'pls_Diosito.bmp')
 r.glClear()
-r.active_texture = Texture('./models/model.bmp')
-r.active_shader = toon
+r.activeT = Texture('./models/model.bmp')
 
-posModel = V3(0, 0, -5)
+posModel = V3( 0, 0, -5)
+r.actSha = toon
 
-r.lookAt(posModel, V3(0, 0, 0), V3(0, 1, 0))
+light = V3(0.5,0,1)
 
+normal = norm(light)
 
-r.load_model('./models/model.obj', translate=(-0.8, 0.6, 0), scale=(0.35,0.5,0.5), rotate=(0, 0, 0))
+light = V3(light[0]/normal,light[1]/normal,light[2]/normal)
+r.light = light
+
+r.lookAt(posModel, V3(2,2,0))
+r.loadModel('./models/model.obj', posModel,V3(2,2,2), V3(0,0,0))
 
 r.glFinish()
+
+

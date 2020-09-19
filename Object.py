@@ -17,7 +17,7 @@ class Obj(object):
         with open(filename, 'r') as file:
             self.lines=file.read().splitlines()
         #clasificaciones de datos dentro de archivo OBJ
-        self.vertices=[]
+        self.vertex=[]
         self.normals=[]
         self.tvertex=[]
         self.faces=[]
@@ -31,10 +31,10 @@ class Obj(object):
                 except:
                     continue
                 if prefix == 'v': # vertices
-                    self.vertices.append(list(map(float,value.split(' '))))
+                    self.vertex.append(list(map(float,value.split(' '))))
                 elif prefix == 'vn': #normales
                     self.normals.append(list(map(float,value.split(' '))))
-                elif prefix == 'vt': #textcoords
+                elif prefix == 'vt': #tvertex
                     self.tvertex.append(list(map(float,value.split(' '))))
                 elif prefix == 'f': #faces XX/YY/ZZ
                     self.faces.append([list(map(int,vert.split('/'))) for vert in value.split(' ')])
