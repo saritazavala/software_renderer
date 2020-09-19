@@ -34,9 +34,9 @@ class Obj(object):
                     self.vertex.append(list(map(float,value.split(' '))))
                 elif prefix == 'vn': #normales
                     self.normals.append(list(map(float,value.split(' '))))
-                elif prefix == 'vt': #tvertex
+                elif prefix == 'vt':
                     self.tvertex.append(list(map(float,value.split(' '))))
-                elif prefix == 'f': #faces XX/YY/ZZ
+                elif prefix == 'f':
                     self.faces.append([list(map(int,vert.split('/'))) for vert in value.split(' ')])
 
 
