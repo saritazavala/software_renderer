@@ -11,38 +11,65 @@ from glFunctions import *
 from shaders import *
 from mathFunctions import *
 
-r = Render(800,600, 'Nueva.bmp')
+#Creacion de render
+r = Render(800,600, 'NEW.bmp')
 r.glClear()
-r.actSha = gourad
-light = V3(0.5,0,1)
-posModel = V3(0,0,-5)
-normal = norm(light)
 
+#Shader
+r.actSha = gourad
+
+#Luz
+light = V3(0.5,0,1)
+normal = norm(light)
 light = V3(light[0]/normal,light[1]/normal,light[2]/normal)
 r.light = light
 
-r.lookAt(posModel, V3(0,0,0))
 
-# Conejo
-r.activeT = Texture('./models/rabbit.bmp')
-r.loadModel('./models/rabbit.obj', posModel, V3(1,1,1), V3(0,10,0))
-#
-# dog
-r.activeT = Texture('./models/husky.bmp')
-r.loadModel('./models/husky.obj', posModel, V3(1,1,1), V3(0,0,0))
-#
-# #deer
-r.activeT = Texture('./models/deer.bmp')
-r.loadModel('./models/deer.obj', posModel,V3(0.02,0.02,0.02), V3(0,0,0))
+#Poscion de modelo
+posModel = V3(0,0,-5)
 
-#duck
-r.activeT = Texture('./models/duck.bmp')
-r.loadModel('./models/duck.obj', posModel,V3(0.05,0.05,0.05), V3(0,30,10))
-#
- #Penguin
-posModel = V3(-2,0,-5)
+#Camara
+r.lookAt(posModel, V3(3,2,0))
+
+#Fondo
+h = 640
+w = 800
+
+r.activeT = Texture('./models/a.bmp')
+for y in range(len(r.framebuffer)):
+    for x in range(len(r.framebuffer[y])):
+        r.glpoint(x,y,r.activeT.getColor(x/w,y/h))
+
+# #Penguin
+posModel = V3(1,0,-1)
 r.activeT = Texture('./models/Pen.bmp')
-r.loadModel('./models/Pen.obj', posModel,V3(1,1,1), V3(0,0,0))
+r.loadModel('./models/Pen.obj', posModel,V3(1,1,1), V3(-10,65,0))
+
+# # dog
+posModel = V3(3,-0.5,-3)
+r.activeT = Texture('./models/husky.bmp')
+r.loadModel('./models/husky.obj', posModel, V3(1,1,1), V3(-10,-20,5))
+#
+# # Conejo
+posModel = V3(-1,-4,-8)
+r.activeT = Texture('./models/rabbit.bmp')
+r.loadModel('./models/rabbit.obj', posModel, V3(1,1,1), V3(-10,3,0))
+# #
+# # #duck
+posModel = V3(2,-2,-6)
+r.activeT = Texture('./models/duck.bmp')
+r.loadModel('./models/duck.obj', posModel,V3(0.03,0.03,0.03), V3(-100,-15,0))
+# #
+# # #deer
+posModel = V3(0,-1,-3)
+r.activeT = Texture('./models/deer.bmp')
+r.loadModel('./models/deer.obj', posModel,V3(0.02,0.02,0.02), V3(-90,0,0))
+
+# bird
+posModel = V3(0,0,-5)
+r.activeT = Texture('./models/bird.bmp')
+r.loadModel('./models/bird.obj', posModel, V3(0.1,0.1,0.1), V3(-90,0,0))
+
 
 r.glFinish()
 
