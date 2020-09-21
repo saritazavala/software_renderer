@@ -29,15 +29,16 @@ class Obj(object):
                 try:
                     prefix, value = line.split(' ', 1)
                 except:
-                    continue
-                if prefix == 'v': # vertices
-                    self.vertex.append(list(map(float,value.split(' '))))
-                elif prefix == 'vn': #normales
-                    self.normals.append(list(map(float,value.split(' '))))
+                    prefix = ''
+                if prefix == 'v':
+                    self.vertex.append(list(map(float, value.split(' '))))
                 elif prefix == 'vt':
-                    self.tvertex.append(list(map(float,value.split(' '))))
+                    self.tvertex.append(list(map(float, value.strip().split(' '))))
+                elif prefix == 'vn':
+                    self.normals.append(list(map(float,value.split(' '))))
                 elif prefix == 'f':
-                    self.faces.append([list(map(int,vert.split('/'))) for vert in value.split(' ')])
+                    self.faces.append([list(map(try_int, face.split('/'))) for face in value.split(' ')])
+
 
 
 class Texture(object):
