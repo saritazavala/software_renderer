@@ -16,7 +16,7 @@ r = Render(800,600, 'NEW.bmp')
 r.glClear()
 
 #Shader
-r.actSha = gourad
+r.actSha = intense
 
 #Luz
 light = V3(0.5,0,1)
@@ -46,7 +46,7 @@ r.activeT = Texture('./models/Pen.bmp')
 r.loadModel('./models/Pen.obj', posModel,V3(1,1,1), V3(-10,65,0))
 
 # # dog
-posModel = V3(3,-0.5,-3)
+posModel = V3(3,-0.5,-4)
 r.activeT = Texture('./models/husky.bmp')
 r.loadModel('./models/husky.obj', posModel, V3(1,1,1), V3(-10,-20,5))
 #
