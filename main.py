@@ -42,18 +42,21 @@ for y in range(len(r.framebuffer)):
 
 # #Penguin
 posModel = V3(1,0,-1)
+r.actSha = static
 r.activeT = Texture('./models/Pen.bmp')
 r.loadModel('./models/Pen.obj', posModel,V3(1,1,1), V3(-10,65,0))
 
 # # dog
 posModel = V3(3,-0.5,-4)
+r.actSha = psychedelic
 r.activeT = Texture('./models/husky.bmp')
 r.loadModel('./models/husky.obj', posModel, V3(1,1,1), V3(-10,-20,5))
 #
 # # Conejo
-posModel = V3(-1,-4,-8)
+posModel = V3(0,-3,-5)
+r.actSha = twoface
 r.activeT = Texture('./models/rabbit.bmp')
-r.loadModel('./models/rabbit.obj', posModel, V3(1,1,1), V3(-10,3,0))
+r.loadModel('./models/rabbit.obj', posModel, V3(1,1,1), V3(-10,15,0))
 # #
 # # #duck
 posModel = V3(2,-2,-6)
@@ -62,11 +65,13 @@ r.loadModel('./models/duck.obj', posModel,V3(0.03,0.03,0.03), V3(-100,-15,0))
 # #
 # # #deer
 posModel = V3(0,-1,-3)
+r.actSha = intense
 r.activeT = Texture('./models/deer.bmp')
 r.loadModel('./models/deer.obj', posModel,V3(0.02,0.02,0.02), V3(-90,0,0))
 
 # bird
 posModel = V3(0,0,-5)
+r.actSha = rainbow
 r.activeT = Texture('./models/bird.bmp')
 r.loadModel('./models/bird.obj', posModel, V3(0.1,0.1,0.1), V3(-90,0,0))
 
